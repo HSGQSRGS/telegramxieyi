@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ 标题 }}</title>
+<style>
+:root{
+  --bg:#0a0a1f; --card:rgba(26,26,58,0.6); --accent:#7e6cf0; --accent2:#fc5185;
+  --text:#e8e8ff; --muted:#a0a0c8; --border:rgba(126,108,240,0.3);
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Helvetica Neue',sans-serif;}
+body{
+  background:linear-gradient(135deg,#0a0a1f 0%,#1a0a2e 50%,#0a1f2e 100%);
+  color:var(--text);min-height:100vh;padding:24px;
+}
+.head{display:flex;justify-content:space-between;align-items:center;
+      margin-bottom:30px;flex-wrap:wrap;gap:12px;}
+h1{font-size:28px;background:linear-gradient(90deg,var(--accent),var(--accent2));
+   -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+a.btn,a.btnn{padding:10px 18px;border-radius:10px;text-decoration:none;
+  background:rgba(255,255,255,0.08);color:var(--text);font-size:14px;
+  transition:all .2s;display:inline-block;}
+a.btn:hover{background:var(--accent);}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:30px;}
+.card{background:var(--card);backdrop-filter:blur(20px);
+      border:1px solid var(--border);border-radius:18px;
+      padding:22px;cursor:pointer;transition:all .2s;}
+.card:hover{transform:translateY(-4px);border-color:var(--accent);}
+.label{font-size:13px;color:var(--muted);margin-bottom:8px;}
+.value{font-size:32px;font-weight:700;
+       background:linear-gradient(90deg,var(--accent),var(--accent2));
+       -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.section{margin-bottom:30px;}
+.section h2{font-size:18px;margin-bottom:14px;color:var(--muted);
+            text-transform:uppercase;letter-spacing:1px;}
+.row{background:var(--card);border:1px solid var(--border);
+     border-radius:14px;padding:14px 18px;margin-bottom:8px;
+     display:flex;justify-content:space-between;font-size:13px;gap:10px;flex-wrap:wrap;}
+.row:hover{border-color:var(--accent);}
+.tag{display:inline-block;padding:3px 10px;border-radius:6px;font-size:12px;
+      background:rgba(126,108,240,0.2);color:var(--accent);}
+.tag.ok{background:rgba(34,197,94,0.2);color:#22c55e;}
+.tag.warn{background:rgba(245,158,11,0.2);color:#f59e0b;}
+.tag.err{background:rgba(239,68,68,0.2);color:#ef4444;}
+.empty{color:var(--muted);font-style:italic;padding:20px;text-align:center;}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
+.tab{padding:8px 16px;border-radius:10px;cursor:pointer;
+     background:rgba(255,255,255,0.05);font-size:13px;
+     transition:all .2s;border:1px solid transparent;}
+.tab.active{background:var(--accent);border-color:var(--accent);}
+code{font-family:Menlo,monospace;font-size:12px;color:#a0a0c8;}
+</style>
+</head>
+<body>
+<div class="head">
+  <h1>🧰 {{ 项目名 }} · 控制台</h1>
+  <div>
+    <a class="btn" href="/api/统计" target="_blank">📊 API</a>
+    <a class="btnn" href="/登出">🚪 登出</a>
+  </div>
+</div>
+
+<div class="tabs" id="tabs">
+  <div class="tab active" data-tab="概览">概览</div>
+  <div class="tab" data-tab="账号">账号</div>
+  <div class="tab" data-tab="任务">任务</div>
+  <div class="tab" data-tab="守护">守护</div>
+  <div class="tab" data-tab="代理">代理</div>
+  <div class="tab" data-tab="举报">举报</div>
+</div>
+
+<div id="page-概览" class="page">
+  <div class="grid" id="stats"></div>
+</div>
+
+<div id="page-账号" class="page" style="display:none">
+  <div class="section"><h2>账号列表</h2><div id="accounts"></div></div>
+</div>
+
+<div id="page-任务" class="page" style="display:none">
+  <div class="section"><h2>任务列表</h2><div id="tasks"></div></div>
+</div>
+
+<div id="page-守护" class="page" style="display:none">
+  <div class="section"><h2>守护日志</h2><div id="guardlog"></div></div>
+</div>
+
+<div id="page-代理" class="page" style="display:none">
+  <div class="section"><h2>代理列表</h2><div id="proxies"></div></div>
+</div>
+
+<div id="page-举报" class="page" style="display:none">
+  <div class="section"><h2>举报任务</h2><div id="reports"></div></div>
+</div>
+
+<script>
+function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function fmt(v){return typeof v==='number'?v.toLocaleString():v;}
+async function get(url){const r=await fetch(url);return await r.json();}
+
+async function loadStats(){
+  const s=await get('/api/统计');
+  const box=document.getElementById('stats');
+  box.innerHTML='';
+  const items=[
+    ['用户数',s.用户数,'👥'],
+    ['账号数',s.账号数,'📱'],
+    ['任务数',s.任务数,'⚡'],
+    ['代理数',s.代理数,'🌐'],
+    ['守护日志',s.守护日志,'🛡️'],
+    ['举报任务',s.举报任务,'🚨'],
+    ['频道数',s.频道数,'📢'],
+  ];
+  for(const[k,v,i]of items){
+    box.innerHTML+=`<div class="card"><div class="label">${i} ${k}</div><div class="value">${fmt(v)}</div></div>`;
+  }
+}
+
+async function loadAccounts(){
+  const list=await get('/api/账号');
+  const box=document.getElementById('accounts');
+  if(!list.length){box.innerHTML='<div class="empty">暂无账号</div>';return;}
+  box.innerHTML=list.map(a=>`
+    <div class="row">
+      <span><code>${esc(a.phone)}</code></span>
+      <span>${esc(a.first_name||'')} ${esc(a.last_name||'')}</span>
+      <span>${a.username?'@'+esc(a.username):'-'}</span>
+      <span class="tag ${a.status==='active'?'ok':a.status==='inactive'?'err':''}">${esc(a.status||'')}</span>
+      <span>${a.premium?'⭐':''}</span>
+    </div>`).join('');
+}
+
+async function loadTasks(){
+  const list=await get('/api/任务');
+  const box=document.getElementById('tasks');
+  if(!list.length){box.innerHTML='<div class="empty">暂无任务</div>';return;}
+  box.innerHTML=list.map(t=>`
+    <div class="row">
+      <span>#${t.id} ${esc(t.task_type||'')}</span>
+      <span class="tag ${t.status==='completed'?'ok':t.status==='running'?'warn':''}">${esc(t.status||'')}</span>
+      <span>${fmt(t.success_count||0)}/${fmt(t.total_count||0)}</span>
+    </div>`).join('');
+}
+
+async function loadGuard(){
+  const list=await get('/api/守护日志');
+  const box=document.getElementById('guardlog');
+  if(!list.length){box.innerHTML='<div class="empty">暂无守护日志</div>';return;}
+  box.innerHTML=list.map(l=>`
+    <div class="row">
+      <span><code>${esc(l.phone||'')}</code></span>
+      <span class="tag ${l.event_type==='login'?'err':'warn'}">${esc(l.event_type||'')}</span>
+      <span>${esc((l.created_at||'').slice(0,16))}</span>
+    </div>`).join('');
+}
+
+async function loadProxies(){
+  const list=await get('/api/代理');
+  const box=document.getElementById('proxies');
+  if(!list.length){box.innerHTML='<div class="empty">暂无代理</div>';return;}
+  box.innerHTML=list.map(p=>`
+    <div class="row">
+      <span><code>${esc((p.proxy_str||'').slice(0,40))}</code></span>
+      <span class="tag ${p.status==='active'?'ok':''}">${esc(p.status||'')}</span>
+      <span>失败 ${p.fail_count||0}</span>
+    </div>`).join('');
+}
+
+async function loadReports(){
+  const list=await get('/api/举报任务');
+  const box=document.getElementById('reports');
+  if(!list.length){box.innerHTML='<div class="empty">暂无举报任务</div>';return;}
+  box.innerHTML=list.map(r=>`
+    <div class="row">
+      <span>#${r.id} ${esc(r.reason||'')}</span>
+      <span class="tag ${r.status==='completed'?'ok':r.status==='running'?'warn':''}">${esc(r.status||'')}</span>
+      <span>${fmt(r.success_count||0)}/${fmt(r.total_count||0)}</span>
+    </div>`).join('');
+}
+
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick=()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+    document.getElementById('page-'+t.dataset.tab).style.display='block';
+    if(t.dataset.tab==='账号')loadAccounts();
+    if(t.dataset.tab==='任务')loadTasks();
+    if(t.dataset.tab==='守护')loadGuard();
+    if(t.dataset.tab==='代理')loadProxies();
+    if(t.dataset.tab==='举报')loadReports();
+  };
+});
+
+(async()=>{await loadStats();})();
+</script>
+</body>
+</html>
