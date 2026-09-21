@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ 标题 }}</title>
+<style>
+:root{
+  --bg:#0a0a1f; --card:rgba(26,26,58,0.6); --accent:#7e6cf0; --accent2:#fc5185;
+  --text:#e8e8ff; --muted:#a0a0c8;
+  --border:rgba(126,108,240,0.3);
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Helvetica Neue',sans-serif;}
+body{
+  min-height:100vh;
+  background:linear-gradient(135deg,#0a0a1f 0%,#1a0a2e 50%,#0a1f2e 100%);
+  color:var(--text);display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.box{
+  width:100%;max-width:420px;
+  background:var(--card);backdrop-filter:blur(20px);
+  border:1px solid var(--border);border-radius:24px;
+  padding:40px 30px;box-shadow:0 20px 60px rgba(0,0,0,0.5);
+}
+.logo{text-align:center;font-size:48px;margin-bottom:10px;}
+h1{text-align:center;font-size:24px;margin-bottom:8px;
+   background:linear-gradient(90deg,var(--accent),var(--accent2));
+   -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sub{text-align:center;color:var(--muted);margin-bottom:30px;font-size:13px;}
+.field{margin-bottom:18px;}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px;}
+input{
+  width:100%;padding:14px 16px;background:rgba(255,255,255,0.05);
+  border:1px solid var(--border);border-radius:12px;
+  color:var(--text);font-size:15px;outline:none;transition:all .2s;
+}
+input:focus{border-color:var(--accent);background:rgba(126,108,240,0.1);}
+button{
+  width:100%;padding:14px;border:none;border-radius:12px;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  color:white;font-size:16px;font-weight:600;cursor:pointer;transition:transform .2s;
+}
+button:hover{transform:translateY(-2px);}
+button:active{transform:translateY(0);}
+.err{background:rgba(239,68,68,0.2);color:#fca5a5;
+     padding:10px;border-radius:10px;margin-bottom:15px;font-size:13px;
+     display:none;}
+.tip{text-align:center;color:var(--muted);font-size:12px;margin-top:20px;}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="logo">🧰</div>
+  <h1>{{ 项目名 }}</h1>
+  <div class="sub">管理后台 · Lion Edition</div>
+  <div id="err" class="err"></div>
+  <div class="field">
+    <label>账号</label>
+    <input id="u" placeholder="admin" autocomplete="username">
+  </div>
+  <div class="field">
+    <label>密码</label>
+    <input id="p" type="password" placeholder="••••••••" autocomplete="current-password">
+  </div>
+  <button onclick="login()">登 录</button>
+  <div class="tip">默认账号 admin · 密码 lion@2026（请在 .env 中修改）</div>
+</div>
+<script>
+async function login(){
+  const u=document.getElementById('u').value;
+  const p=document.getElementById('p').value;
+  const fd=new FormData();
+  fd.append('用户',u);fd.append('密码',p);
+  const r=await fetch('/登录',{method:'POST',body:fd});
+  if(r.ok){location.href='/控制台';}
+  else{const e=document.getElementById('err');
+       e.textContent='账号或密码错误';e.style.display='block';}
+}
+document.getElementById('p').addEventListener('keydown',e=>{if(e.key==='Enter')login();});
+</script>
+</body>
+</html>
