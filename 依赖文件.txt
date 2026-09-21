@@ -1,0 +1,15 @@
+# 机器人
+python-telegram-bot>=20.7
+
+# Telethon（账号登录 / 守护 / 监听 / 批量操作）
+telethon>=1.36
+cryptg>=0.4
+
+# Web 后台
+fastapi>=0.110
+uvicorn[standard]>=0.27
+python-jose[cryptography]>=3.3
+python-multipart>=0.0.9
+
+# .env
+python-dotenv>=1.0
